@@ -29,47 +29,41 @@
 //: * -10^5 <= nums[i] <= 10^5
 //:
 
+
 class Solution {
     func threeSum(_ nums: [Int]) -> [[Int]] {
         guard nums.count >= 3 else { return [] }
         
-        let sortedNums = nums.sorted()
-        var results = [[Int]]()
+        var result = [[Int]]()
         
-        for leftIndex in 0..<sortedNums.endIndex - 2 {
-            for middleIndex in leftIndex + 1..<sortedNums.endIndex - 1 {
-                let target = -(sortedNums[leftIndex] + sortedNums[middleIndex])
-                if binaryContains(target, in: sortedNums.dropFirst(middleIndex + 1)) {
-                    results.append([sortedNums[leftIndex], sortedNums[middleIndex], target])
-                }
+        for baseIndex in nums.startIndex ..< nums.index(nums.endIndex, offsetBy: -2) {
+            let searchRange = nums.index(after: baseIndex) ..< nums.endIndex
+            let twoSumResult = twoSum(nums[searchRange], target: -nums[baseIndex])
+            let threeSums = twoSumResult.map { twoSumPair in
+                ([nums[baseIndex]] + twoSumPair).sorted()
             }
+            result.append(contentsOf: threeSums)
         }
         
-        let uniques = Set(results)
+        let uniques = Set(result)
         return Array(uniques)
     }
     
-    func binaryContains(_ target: Int, in a: ArraySlice<Int>) -> Bool {
-        let array = Array(a)
-        return binarySearch(
-            array: array,
-            target: target,
-            range: array.startIndex..<array.endIndex
-        ) != nil
-    }
-
-    func binarySearch<T: Comparable>(array a: [T], target: T, range: Range<Int>) -> Int? {
-        guard range.lowerBound < range.upperBound else { return nil }
+    func twoSum(_ nums: ArraySlice<Int>, target: Int) -> [[Int]] {
+        guard nums.count >= 2 else { return [] }
         
-        let midIndex = (range.lowerBound + range.upperBound) / 2
+        var result = [[Int]]()
+        var numsDict = [Int: Int]()
         
-        if target < a[midIndex] {
-            return binarySearch(array: a, target: target, range: range.lowerBound..<midIndex)
-        } else if a[midIndex] < target {
-            return binarySearch(array: a, target: target, range: midIndex + 1..<range.upperBound)
-        } else {
-            return midIndex
+        for pointerIndex in nums.startIndex ..< nums.endIndex {
+            if let complementIndex = numsDict[target - nums[pointerIndex]] {
+                result.append([nums[pointerIndex], nums[complementIndex]])
+            } else {
+                numsDict[nums[pointerIndex]] = pointerIndex
+            }
         }
+        
+        return result
     }
 }
 
