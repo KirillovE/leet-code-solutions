@@ -34,36 +34,50 @@ class Solution {
     func threeSum(_ nums: [Int]) -> [[Int]] {
         guard nums.count >= 3 else { return [] }
         
+        let sorted = nums.sorted()
         var result = [[Int]]()
         
-        for baseIndex in nums.startIndex ..< nums.index(nums.endIndex, offsetBy: -2) {
-            let searchRange = nums.index(after: baseIndex) ..< nums.endIndex
-            let twoSumResult = twoSum(nums[searchRange], target: -nums[baseIndex])
-            let threeSums = twoSumResult.map { twoSumPair in
-                ([nums[baseIndex]] + twoSumPair).sorted()
+        var leftIndex = sorted.startIndex
+        while leftIndex < sorted.endIndex {
+            var middleIndex = sorted.index(after: leftIndex)
+            var rightIndex = sorted.index(before: sorted.endIndex)
+            
+            while middleIndex < rightIndex {
+                let sum = sorted[leftIndex] + sorted[middleIndex] + sorted[rightIndex]
+                if sum == 0 {
+                    result.append([sorted[leftIndex], sorted[middleIndex], sorted[rightIndex]])
+                    sorted.formUniqueIndex(after: &middleIndex)
+                    sorted.formUniqueIndex(before: &rightIndex)
+                } else if sum < 0 {
+                    sorted.formUniqueIndex(after: &middleIndex)
+                } else if sum > 0 {
+                    sorted.formUniqueIndex(before: &rightIndex)
+                }
             }
-            result.append(contentsOf: threeSums)
-        }
-        
-        let uniques = Set(result)
-        return Array(uniques)
-    }
-    
-    func twoSum(_ nums: ArraySlice<Int>, target: Int) -> [[Int]] {
-        guard nums.count >= 2 else { return [] }
-        
-        var result = [[Int]]()
-        var numsDict = [Int: Int]()
-        
-        for pointerIndex in nums.startIndex ..< nums.endIndex {
-            if let complementIndex = numsDict[target - nums[pointerIndex]] {
-                result.append([nums[pointerIndex], nums[complementIndex]])
-            } else {
-                numsDict[nums[pointerIndex]] = pointerIndex
-            }
+            sorted.formUniqueIndex(after: &leftIndex)
         }
         
         return result
+    }
+}
+
+extension Collection where Element: Equatable {
+    func formUniqueIndex(after index: inout Index) {
+        var previous = index
+        repeat {
+            previous = index
+            formIndex(after: &index)
+        } while index < endIndex && self[previous] == self[index]
+    }
+}
+
+extension BidirectionalCollection where Element: Equatable {
+    func formUniqueIndex(before index: inout Index) {
+        var previous = index
+        repeat {
+            previous = index
+            formIndex(before: &index)
+        } while index > startIndex && self[previous] == self[index]
     }
 }
 
